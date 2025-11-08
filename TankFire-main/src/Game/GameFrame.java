@@ -23,10 +23,21 @@ public class GameFrame extends Frame {
     Image bg = loadImage("../img/bg.png");
     Image tank = loadImage("../img/tank.png");
     Image clickAreaImg = loadImage("../img/click_area.png");
-    Image changeClothingImg = loadImage("../img/change_clothing.png");
-    Image rainyDayImg = loadImage("../img/rainy_day.png");
-    Image nightImg = loadImage("../img/night_clothes.png");
 
+    // 衣服图片资源（按季节-时间-天气分类）
+    Image initialClothesImg = loadImage("../img/clothes/initial_clothes.png");
+    Image summerDaySunny = loadImage("../img/clothes/summer_day_sunny.png");
+    Image summerDayRainy = loadImage("../img/clothes/summer_day_rainy.png");
+    Image summerNightSunny = loadImage("../img/clothes/summer_night_sunny.png");
+    Image summerNightRainy = loadImage("../img/clothes/summer_night_rainy.png");
+    Image winterDaySunny = loadImage("../img/clothes/winter_day_sunny.png");
+    Image winterDayRainy = loadImage("../img/clothes/winter_day_rainy.png");
+    Image winterNightSunny = loadImage("../img/clothes/winter_night_sunny.png");
+    Image winterNightRainy = loadImage("../img/clothes/winter_night_rainy.png");
+
+    Image currentClothesImg = initialClothesImg;
+
+    private final Map<String, Map<String, Map<String, Image>>> clothesImgConfig = new HashMap<>();
     // 坦克状态
     boolean left = false;
     boolean right = false;
@@ -43,11 +54,8 @@ public class GameFrame extends Frame {
     Random random = new Random(); // 用于生成随机值
     int bulletSpawnRate = 10; // 子弹生成概率（数值越大生成越慢）
 
-
-
-
     // 衣服颜色配置（wear对话框使用）
-    private final Map<String, Map<String, Map<String, Color>>> clothesColorConfig = new HashMap<>();
+//    private final Map<String, Map<String, Map<String, Color>>> clothesColorConfig = new HashMap<>();
 
     public static void main(String[] args) {
         GameFrame frame = new GameFrame();
@@ -63,7 +71,7 @@ public class GameFrame extends Frame {
         startTimeMillis = System.currentTimeMillis();
 
         // 初始化衣服颜色配置
-        initClothesColorConfig();
+        initClothesImgConfig();
 
         // 启动绘制线程
         new PaintThread().start();
@@ -212,105 +220,98 @@ public class GameFrame extends Frame {
     }
 
     // -------------------------- 1. 衣服颜色配置对话框（wear命令）相关代码 --------------------------
-    // 初始化衣服颜色配置
-    private void initClothesColorConfig() {
+    // 初始化衣服图片配置：季节->时间->天气->衣服图片
+    private void initClothesImgConfig() {
         // 夏季配置
-        Map<String, Map<String, Color>> summerConfig = new HashMap<>();
-        Map<String, Color> summerDay = new HashMap<>();
-        summerDay.put("晴天", new Color(255, 165, 0)); // 橙色
-        summerDay.put("雨天", new Color(65, 105, 225)); // 皇家蓝
-        Map<String, Color> summerNight = new HashMap<>();
-        summerNight.put("晴天", new Color(138, 43, 226)); // 蓝紫色
-        summerNight.put("雨天", new Color(25, 25, 112)); // 午夜蓝
+        Map<String, Map<String, Image>> summerConfig = new HashMap<>();
+        Map<String, Image> summerDay = new HashMap<>();
+        summerDay.put("晴天", summerDaySunny);
+        summerDay.put("雨天", summerDayRainy);
+        Map<String, Image> summerNight = new HashMap<>();
+        summerNight.put("晴天", summerNightSunny);
+        summerNight.put("雨天", summerNightRainy);
         summerConfig.put("白天", summerDay);
         summerConfig.put("晚上", summerNight);
 
         // 冬季配置
-        Map<String, Map<String, Color>> winterConfig = new HashMap<>();
-        Map<String, Color> winterDay = new HashMap<>();
-        winterDay.put("Sunday", new Color(255, 255, 255)); // 白色
-        winterDay.put("Rainy", new Color(100, 149, 237)); // 钢青蓝
-        Map<String, Color> winterNight = new HashMap<>();
-        winterNight.put("Sunday", new Color(0, 0, 0)); // 黑色
-        winterNight.put("Rainy", new Color(47, 79, 79)); // 深青色
-        winterConfig.put("day", winterDay);
-        winterConfig.put("night", winterNight);
+        Map<String, Map<String, Image>> winterConfig = new HashMap<>();
+        Map<String, Image> winterDay = new HashMap<>();
+        winterDay.put("晴天", winterDaySunny);
+        winterDay.put("雨天", winterDayRainy);
+        Map<String, Image> winterNight = new HashMap<>();
+        winterNight.put("晴天", winterNightSunny);
+        winterNight.put("雨天", winterNightRainy);
+        winterConfig.put("白天", winterDay);
+        winterConfig.put("晚上", winterNight);
 
-        clothesColorConfig.put("summer", summerConfig);
-        clothesColorConfig.put("winter", winterConfig);
+        clothesImgConfig.put("夏季", summerConfig);
+        clothesImgConfig.put("冬季", winterConfig);
     }
 
-    // 衣服颜色配置对话框（修复按钮为JButton）
+    // 衣服图片选择对话框
     private void showClothesDialog() {
-        Dialog clothesDialog = new Dialog(this, "color of clothes", true);
+        Dialog clothesDialog = new Dialog(this, "选择衣服图片", true);
         clothesDialog.setSize(400, 300);
         clothesDialog.setLocationRelativeTo(this);
         clothesDialog.setLayout(null);
         clothesDialog.setBackground(Color.WHITE);
 
-        // 标题
-        Label titleLabel = new Label("chose season, time and weather");
-        titleLabel.setBounds(0, 20, 400, 20);
-        titleLabel.setFont(new Font("Microsoft YaHei", Font.BOLD, 16));
-        titleLabel.setAlignment(Label.CENTER);
-        clothesDialog.add(titleLabel);
-
         // 季节选择
-        Label seasonLabel = new Label("seasons：");
+        Label seasonLabel = new Label("选择季节：");
         seasonLabel.setBounds(50, 60, 60, 25);
         seasonLabel.setFont(new Font("Microsoft YaHei", Font.PLAIN, 14));
         clothesDialog.add(seasonLabel);
 
-        String[] seasons = {"summer", "winter"};
+        String[] seasons = {"夏季", "冬季"};
         JComboBox<String> seasonCombo = new JComboBox<>(seasons);
         seasonCombo.setBounds(120, 60, 100, 25);
         seasonCombo.setFont(new Font("Microsoft YaHei", Font.PLAIN, 14));
         clothesDialog.add(seasonCombo);
 
         // 时间选择
-        Label timeLabel = new Label("time:");
+        Label timeLabel = new Label("选择时间：");
         timeLabel.setBounds(50, 110, 60, 25);
         timeLabel.setFont(new Font("Microsoft YaHei", Font.PLAIN, 14));
         clothesDialog.add(timeLabel);
 
-        String[] times = {"day", "night"};
+        String[] times = {"白天", "晚上"};
         JComboBox<String> timeCombo = new JComboBox<>(times);
         timeCombo.setBounds(120, 110, 100, 25);
         timeCombo.setFont(new Font("Microsoft YaHei", Font.PLAIN, 14));
         clothesDialog.add(timeCombo);
 
         // 天气选择
-        Label weatherLabel = new Label("weather：");
+        Label weatherLabel = new Label("选择天气：");
         weatherLabel.setBounds(50, 160, 60, 25);
         weatherLabel.setFont(new Font("Microsoft YaHei", Font.PLAIN, 14));
         clothesDialog.add(weatherLabel);
 
-        String[] weathers = {"sunny", "rainy"};
+        String[] weathers = {"晴天", "雨天"};
         JComboBox<String> weatherCombo = new JComboBox<>(weathers);
         weatherCombo.setBounds(120, 160, 100, 25);
         weatherCombo.setFont(new Font("Microsoft YaHei", Font.PLAIN, 14));
         clothesDialog.add(weatherCombo);
 
-        // 确认按钮（JButton，修复样式方法）
-        JButton confirmBtn = new JButton("confirm");
+        // 确认按钮
+        JButton confirmBtn = new JButton("确认选择");
         confirmBtn.setBounds(150, 220, 100, 30);
         confirmBtn.setFont(new Font("Microsoft YaHei", Font.PLAIN, 14));
         confirmBtn.setBackground(new Color(66, 133, 244));
         confirmBtn.setForeground(Color.BLACK);
-        confirmBtn.setBorderPainted(false); // 有效，JButton支持
-        confirmBtn.setFocusPainted(false); // 有效，JButton支持
+        confirmBtn.setBorderPainted(false);
+        confirmBtn.setFocusPainted(false);
         confirmBtn.addActionListener(e -> {
             String season = (String) seasonCombo.getSelectedItem();
             String time = (String) timeCombo.getSelectedItem();
             String weather = (String) weatherCombo.getSelectedItem();
 
-            // 获取对应的颜色并修改背景
-            Color targetColor = clothesColorConfig.get(season).get(time).get(weather);
-            if (targetColor != null) {
-                bg = createColoredBackground(targetColor, getWidth(), getHeight());
-                showTipDialog(String.format("set %s-%s-%s color！", season, time, weather));
+            // 根据选择获取对应的衣服图片并更新当前衣服
+            Image targetClothes = clothesImgConfig.get(season).get(time).get(weather);
+            if (targetClothes != null) {
+                currentClothesImg = targetClothes;
+                showTipDialog(String.format("已更换为：%s-%s-%s 衣服", season, time, weather));
             } else {
-                showTipDialog("not found color config！");
+                showTipDialog("未找到对应衣服图片配置！");
             }
             clothesDialog.dispose();
         });
@@ -327,16 +328,6 @@ public class GameFrame extends Frame {
         clothesDialog.setVisible(true);
     }
 
-    // 创建指定颜色的背景图
-    // todo 绘制衣服
-    private Image createColoredBackground(Color color, int width, int height) {
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g2d = image.createGraphics();
-        g2d.setColor(color);
-        g2d.fillRect(0, 0, width, height);
-        g2d.dispose();
-        return image;
-    }
 
     // -------------------------- 2. 代码行数统计对话框（count命令）相关代码 --------------------------
     // 代码行数统计结果模型
@@ -572,7 +563,7 @@ public class GameFrame extends Frame {
         }
     }
 
-    // 提示对话框（修复按钮为JButton）
+    // 提示对话框
     private void showTipDialog(String message) {
         Dialog tipDialog = new Dialog(this, "提示", true);
         tipDialog.setSize(320, 150);
@@ -845,29 +836,12 @@ public class GameFrame extends Frame {
         //绘制衣服切换区域
         if(changeClothingArea!= null){
             g.drawImage(
-                    changeClothingImg,
+                    currentClothesImg,
                     changeClothingArea.x, changeClothingArea.y,
                     changeClothingArea.width, changeClothingArea.height,
                     this
             );
         }
-        // 绘制可点击区域
-//
-//        g.setColor(new Color(0, 0, 0, 180));
-//        g.fillRoundRect(
-//                clickableArea.x, clickableArea.y,
-//                clickableArea.width, clickableArea.height,
-//                8, 8 // 圆角半径
-//        );
-//        g.setColor(Color.WHITE);
-//        g.setFont(new Font("Arial", Font.BOLD, 14));
-//        FontRenderContext frc = ((Graphics2D) g).getFontRenderContext();
-//        String clickableAreaText = "Click here";
-//        Rectangle2D textRect = g.getFont().getStringBounds(clickableAreaText, frc);
-//        int textX1 = clickableArea.x + (int)((clickableArea.width - textRect.getWidth())/2);
-//        int textY1 = clickableArea.y + (int)((clickableArea.height + textRect.getHeight())/2) - 3;
-//        g.drawString(clickableAreaText, textX1, textY1);
-//        g.setColor(keepColor);
 
         // 绘制坦克
         g.drawImage(tank, tankX, tankY, tankWidth, tankHeight, this);
