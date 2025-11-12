@@ -2,13 +2,32 @@ package Game;
 import java.io.IOException;
 
 public class DuckBark {
-    interface BehaveStrategy { void makeBehave(); }
+    public interface BehaveStrategy { void makeBehave(); }
+    public interface SoundStrategy { void makeSound(); }
+
+    // 行为组接口
+    public interface DuckAction{
+        BehaveStrategy getBehaveStrategy();
+        SoundStrategy getSoundStrategy();
+    }
+
+    // -------------------得分行为----------------------
+    public static class GetPointAction implements DuckAction {
+        @Override
+        public BehaveStrategy getBehaveStrategy() {
+            return new Behave_GetPoint();
+        }
+        @Override
+        public SoundStrategy getSoundStrategy() {
+            return new Sound_GetPoint();
+        }
+    }
+
     // Behave不同的实现
     static class Behave_GetPoint implements BehaveStrategy {
         @Override public void makeBehave() {System.out.println("Behave_GetPoint");}
     }
 
-    interface SoundStrategy { void makeSound(); }
     // Sound不同的实现
     static class Sound_GetPoint implements SoundStrategy {
         @Override public void makeSound() {
@@ -43,12 +62,30 @@ public class DuckBark {
         private BehaveStrategy behaveStrategy;
         private SoundStrategy soundStrategy;
 
-        public void setBehaveStrategy(BehaveStrategy behaveStrategy) {this.behaveStrategy = behaveStrategy;}
-        public void setSoundStrategy(SoundStrategy soundStrategy) {this.soundStrategy = soundStrategy;}
+        // 构造方法：默认使用得点行为组
+        public Duck() {
+            setAction(new GetPointAction());
+        }
 
+        // 切换行为组
+        public void setAction(DuckAction action) {
+            this.behaveStrategy = action.getBehaveStrategy();
+            this.soundStrategy = action.getSoundStrategy();
+        }
+
+        // 兼容原有单独切换策略的方法（可选保留）
+        public void setBehaveStrategy(BehaveStrategy behaveStrategy) {
+            this.behaveStrategy = behaveStrategy;
+        }
+
+        public void setSoundStrategy(SoundStrategy soundStrategy) {
+            this.soundStrategy = soundStrategy;
+        }
+
+        // act()方法不变：自动执行当前绑定的策略
         public void act() {
-            behaveStrategy.makeBehave();
-            soundStrategy.makeSound();
+            if (behaveStrategy != null) behaveStrategy.makeBehave();
+            if (soundStrategy != null) soundStrategy.makeSound();
         }
     }
 }
