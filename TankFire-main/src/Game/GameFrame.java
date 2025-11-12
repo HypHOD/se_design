@@ -17,8 +17,9 @@ import java.util.Map;
 import java.util.HashMap;
 
 public class GameFrame extends Frame {
-    private DuckBark.Duck duck;
     // 定义duck行为组
+    private DuckBark.Duck duck;
+    private final DuckBark.DuckAction getPointAction= new DuckBark.GetPointAction();
 
 
     int totalScore = 0;
@@ -748,7 +749,12 @@ public class GameFrame extends Frame {
                 Rectangle tankRect = new Rectangle(tankX, tankY, tankWidth, tankHeight);
                 if (bulletRect.intersects(tankRect)) {
                     totalScore += (int) bulletList.get(i).damage;
-                    duck.act();
+//                    duck.act();
+                    // 改为异步执行
+                    if(duck!=null){
+                        duck.setAction(getPointAction);
+                        DuckBark.AsyncActionUtil.execute(duck::act);
+                    }
                     bulletList.remove(i);
                     i--;
                     continue;
