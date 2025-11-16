@@ -1,11 +1,9 @@
--- create campus_shop
--- CREATE DATABASE campus_shop
--- WITH
---     OWNER = postgres ENCODING = 'UTF8' LC_COLLATE = 'zh_CN.UTF-8' LC_CTYPE = 'zh_CN.UTF-8' TABLESPACE = pg_default CONNECTION
--- LIMIT = -1;
+-- 需要手动数据库
+-- >psql -d postgres;
+-- >CREATE DATABASE campus_shop;
 
 -- 使用数据库
--- USE campus_shop;
+-- >\c campus_shop;
 
 -- create table user
 CREATE TABLE IF NOT EXISTS user_info (
@@ -30,12 +28,13 @@ CREATE TABLE IF NOT EXISTS category (
 
 -- create table product
 CREATE TABLE IF NOT EXISTS product (
-    prodcut_id SERIAL PRIMARY KEY,
+    product_id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES user_info (user_id),
     category INT NOT NULL REFERENCES category (category_id),
     product_title VARCHAR(255) NOT NULL,
     product_o_price INT NOT NULL,
     product_price INT NOT NULL,
+    product_status SMALLINT NOT NULL DEFAULT 0,
     quality SMALLINT DEFAULT 1,
     reject_reason VARCHAR(255),
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -74,7 +73,7 @@ CREATE TABLE IF NOT EXISTS user_order (
     product_title VARCHAR(255) NOT NULL,
     product_image VARCHAR(255) NOT NULL,
     price DECIMAL(10, 2) NOT NULL,
-    status SMALLINT NOT NULL,
+    order_status SMALLINT NOT NULL,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     pay_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     receive_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -87,9 +86,9 @@ CREATE TABLE IF NOT EXISTS comment (
     order_id INT NOT NULL REFERENCES user_order (order_id),
     user_id INT NOT NULL REFERENCES user_info (user_id),
     seller_id INT NOT NULL REFERENCES user_info (user_id),
-    content VARCHAR(1000),
+    comment_content VARCHAR(1000),
     rating SMALLINT DEFAULT 10,
-    status SMALLINT DEFAULT 0,
+    comment_status SMALLINT DEFAULT 0,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 -- create table reserve
@@ -99,7 +98,7 @@ CREATE TABLE IF NOT EXISTS reserve (
     user_id INT NOT NULL REFERENCES user_info (user_id),
     seller_id INT NOT NULL REFERENCES user_info (user_id),
     address_id INT NOT NULL REFERENCES address (address_id),
-    status SMALLINT DEFAULT 0,
+    reserve_status SMALLINT DEFAULT 0,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     finish_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -113,7 +112,7 @@ CREATE TABLE IF NOT EXISTS record (
 -- create table b_notice
 CREATE TABLE IF NOT EXISTS b_notice (
     b_notice_id SERIAL PRIMARY KEY,
-    content VARCHAR(1000) NOT NULL,
+    notice_content VARCHAR(1000) NOT NULL,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     sort_value SMALLINT DEFAULT 0
 );
