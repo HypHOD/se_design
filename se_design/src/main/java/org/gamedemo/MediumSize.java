@@ -1,4 +1,4 @@
-package Game;
+package org.gamedemo;
 
 public class MediumSize implements Size {
     @Override

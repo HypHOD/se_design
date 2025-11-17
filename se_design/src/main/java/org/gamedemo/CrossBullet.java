@@ -1,4 +1,4 @@
-package Game;
+package org.gamedemo;
 
 public class CrossBullet extends Bullet {
     public static final double BASE_DAMAGE = 1.0;

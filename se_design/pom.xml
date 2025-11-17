@@ -13,5 +13,17 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*</include> <!-- 包含所有子目录和文件 -->
+                </includes>
+                <filtering>false</filtering> <!-- 图片等二进制文件不需要过滤 -->
+            </resource>
+        </resources>
+    </build>
+
 </project>
