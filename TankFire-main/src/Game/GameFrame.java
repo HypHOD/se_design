@@ -17,6 +17,11 @@ import java.util.Map;
 import java.util.HashMap;
 
 public class GameFrame extends Frame {
+    // 定义duck行为组
+    private DuckBark.Duck duck;
+    private final DuckBark.DuckAction getPointAction= new DuckBark.GetPointAction();
+
+
     int totalScore = 0;
     long startTimeMillis = 0L;
     // 游戏资源
@@ -59,6 +64,12 @@ public class GameFrame extends Frame {
 
     public static void main(String[] args) {
         GameFrame frame = new GameFrame();
+
+        // Duck行为
+        frame.duck = new DuckBark.Duck();
+        frame.duck.setBehaveStrategy(new DuckBark.Behave_GetPoint());
+        frame.duck.setSoundStrategy(new DuckBark.Sound_GetPoint());
+
         frame.InitialFrame();
     }
 
@@ -69,7 +80,6 @@ public class GameFrame extends Frame {
         setLocationRelativeTo(null); // 居中显示
         setResizable(false); // 固定窗口大小
         startTimeMillis = System.currentTimeMillis();
-
         // 初始化衣服颜色配置
         initClothesImgConfig();
 
@@ -739,6 +749,12 @@ public class GameFrame extends Frame {
                 Rectangle tankRect = new Rectangle(tankX, tankY, tankWidth, tankHeight);
                 if (bulletRect.intersects(tankRect)) {
                     totalScore += (int) bulletList.get(i).damage;
+//                    duck.act();
+                    // 改为异步执行
+                    if(duck!=null){
+                        duck.setAction(getPointAction);
+                        DuckBark.AsyncActionUtil.execute(duck::act);
+                    }
                     bulletList.remove(i);
                     i--;
                     continue;
